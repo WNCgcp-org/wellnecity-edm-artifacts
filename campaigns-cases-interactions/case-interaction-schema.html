@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaigns, Cases, and Interactions Schema Group</title>
+  <style>
+    :root {
+      --purple-primary: #58539D;
+      --purple-75: #7E7AB5;
+      --purple-50: #ABA9CE;
+      --purple-25: #D5D4E6;
+      --orange: #E79E28;
+      --yellow: #F0D56C;
+      --neutral-01: #FFFFFF;
+      --neutral-02: #FAFAFA;
+      --neutral-03: #F5F5F5;
+      --neutral-04: #E8E8E8;
+      --neutral-05: #D1D1D1;
+      --neutral-07: #6E7072;
+      --neutral-09: #333333;
+      --neutral-10: #1A1A1A;
+      --success: #007000;
+      --error: #C40000;
+      --info: #0C55B8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--neutral-09);
+      background: var(--neutral-02);
+      padding: 32px;
+    }
+
+    .page-header {
+      background: var(--purple-primary);
+      color: white;
+      padding: 32px 40px;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 0;
+    }
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .page-header p {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .nav-wrap {
+      background: var(--neutral-10);
+      border-radius: 0 0 8px 8px;
+      margin-bottom: 32px;
+    }
+
+    /* Top-level entity row */
+    .nav-entities {
+      display: flex;
+      align-items: stretch;
+      padding: 0 40px;
+      gap: 0;
+    }
+    .nav-entity {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .nav-entity > a {
+      color: white;
+      text-decoration: none;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-entity > a:hover, .nav-entity > a.active {
+      border-bottom-color: var(--orange);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Toggle button for expandable entities */
+    .nav-toggle {
+      background: none;
+      border: none;
+      color: var(--orange);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 14px 8px 14px 0;
+      line-height: 1;
+      transition: transform 0.2s;
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+    }
+    .nav-toggle:hover {
+      color: var(--yellow);
+    }
+    .nav-toggle.open {
+      transform: rotate(45deg);
+    }
+
+    /* Entity separator */
+    .nav-entity-sep {
+      width: 1px;
+      background: rgba(255,255,255,0.12);
+      margin: 10px 8px;
+    }
+
+    /* Sub-links for SDK Map etc. */
+    .nav-sub-link {
+      color: rgba(255,255,255,0.6) !important;
+      font-size: 11px !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.3px !important;
+      padding: 14px 14px !important;
+    }
+    .nav-sub-link:hover {
+      color: white !important;
+    }
+
+    /* Collapsible domain row */
+    .nav-domains {
+      display: none;
+      padding: 0 40px 0 40px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.15);
+    }
+    .nav-domains.open {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+    .nav-domains a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 9px 16px;
+      font-size: 11px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-domains a:hover {
+      color: white;
+      border-bottom-color: var(--orange);
+      background: rgba(255,255,255,0.03);
+    }
+    .nav-domain-label {
+      color: var(--orange);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 9px 12px 9px 0;
+      align-self: center;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    .entity-section {
+      background: var(--neutral-01);
+      border: 1px solid var(--neutral-04);
+      border-radius: 8px;
+      margin-bottom: 32px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .entity-header {
+      background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-75) 100%);
+      color: white;
+      padding: 24px 32px;
+    }
+    .entity-header h2 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .entity-header .subtitle {
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    .entity-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 20px 32px;
+      background: var(--neutral-03);
+      border-bottom: 1px solid var(--neutral-04);
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .meta-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--neutral-07);
+      margin-bottom: 4px;
+    }
+    .meta-value {
+      font-size: 13px;
+      color: var(--neutral-09);
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--purple-primary);
+      padding: 20px 32px 12px;
+      border-bottom: 1px solid var(--neutral-04);
+    }
+
+    /* Field Table */
+    .field-table-wrap { padding: 0; overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      background: var(--neutral-09);
+      color: white;
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--neutral-04); }
+    tbody tr:hover { background: var(--purple-25); }
+    tbody td {
+      padding: 8px 16px;
+      vertical-align: top;
+    }
+
+    /* Domain heading row */
+    .domain-heading td {
+      background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-75) 100%);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--orange);
+    }
+    .domain-heading:hover td { background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-75) 100%); }
+    .domain-heading .domain-count {
+      font-weight: 400;
+      font-size: 11px;
+      opacity: 0.8;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: 12px;
+    }
+
+    .field-name {
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+      font-weight: 500;
+      color: var(--neutral-10);
+      font-size: 12.5px;
+    }
+    .field-type {
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+      color: var(--info);
+      font-size: 12px;
+    }
+    .constraint-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-right: 3px;
+      margin-bottom: 2px;
+    }
+    .badge-pk { background: var(--purple-primary); color: white; }
+    .badge-fk { background: var(--orange); color: white; }
+    .badge-r  { background: var(--error); color: white; }
+    .badge-u  { background: var(--info); color: white; }
+    .badge-i  { background: var(--success); color: white; }
+
+    /* SDK Mapping Table */
+    .sdk-field {
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+      font-size: 12px;
+      color: var(--neutral-07);
+    }
+    .edm-field {
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+      font-size: 12px;
+      color: var(--purple-primary);
+      font-weight: 500;
+    }
+    .arrow-cell { color: var(--orange); font-weight: 700; text-align: center; }
+
+    /* Relationship and Business Rule panels */
+    .info-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .info-panel {
+      padding: 20px 32px;
+      border-top: 1px solid var(--neutral-04);
+    }
+    .info-panel:first-child { border-right: 1px solid var(--neutral-04); }
+    .info-panel h4 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--purple-primary);
+      margin-bottom: 12px;
+    }
+    .info-panel ul {
+      list-style: none;
+      padding: 0;
+    }
+    .info-panel li {
+      padding: 4px 0;
+      font-size: 13px;
+      color: var(--neutral-09);
+    }
+    .info-panel li::before {
+      content: '\25B8';
+      color: var(--orange);
+      margin-right: 8px;
+      font-weight: 700;
+    }
+
+    .index-panel {
+      padding: 20px 32px;
+      border-top: 1px solid var(--neutral-04);
+      background: var(--neutral-03);
+    }
+    .index-panel h4 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--purple-primary);
+      margin-bottom: 12px;
+    }
+    .index-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .index-tag {
+      background: var(--neutral-01);
+      border: 1px solid var(--neutral-05);
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-family: 'Roboto Mono', 'Consolas', monospace;
+      font-size: 12px;
+      color: var(--neutral-09);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--neutral-07);
+      font-size: 12px;
+    }
+
+    @media print {
+      body { padding: 0; background: white; }
+      .nav-wrap { display: none; }
+      .entity-section { break-inside: avoid; box-shadow: none; }
+      tbody tr:hover { background: inherit; }
+      .domain-heading:hover td { background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-75) 100%); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Campaigns, Cases, and Interactions Schema Group</h1>
+    <p>Campaign, Case, Case Participant, Case Item, Case Workflow &amp; Interaction Entity Definitions &mdash; EDM Intervention TLD &mdash; v1.7</p>
+  </div>
+  <div class="nav-wrap">
+    <div class="nav-entities">
+      <div class="nav-entity">
+        <a href="#case" class="active">Case</a>
+        <button class="nav-toggle" onclick="toggleDomains(this, 'case-domains')" aria-label="Toggle case domains">+</button>
+      </div>
+      <div class="nav-entity-sep"></div>
+      <div class="nav-entity">
+        <a href="#participant">Case Participant</a>
+        <button class="nav-toggle" onclick="toggleDomains(this, 'participant-domains')" aria-label="Toggle participant domains">+</button>
+      </div>
+      <div class="nav-entity-sep"></div>
+      <div class="nav-entity">
+        <a href="#case-item">Case Item</a>
+        <button class="nav-toggle" onclick="toggleDomains(this, 'item-domains')" aria-label="Toggle item domains">+</button>
+      </div>
+      <div class="nav-entity-sep"></div>
+      <div class="nav-entity">
+        <a href="#case-workflow">Case Workflow</a>
+        <button class="nav-toggle" onclick="toggleDomains(this, 'workflow-domains')" aria-label="Toggle workflow domains">+</button>
+      </div>
+      <div class="nav-entity-sep"></div>
+      <div class="nav-entity">
+        <a href="#interaction">Interaction</a>
+        <button class="nav-toggle" onclick="toggleDomains(this, 'interaction-domains')" aria-label="Toggle interaction domains">+</button>
+      </div>
+      <div class="nav-entity-sep"></div>
+      <div class="nav-entity">
+        <a href="#case-sdk" class="nav-sub-link">Case SDK</a>
+        <a href="#interaction-sdk" class="nav-sub-link">Interaction SDK</a>
+      </div>
+    </div>
+    <div class="nav-domains" id="case-domains">
+      <span class="nav-domain-label">Domains</span>
+      <a href="#domain-identity">Identity</a>
+      <a href="#domain-participants">Participants</a>
+      <a href="#domain-campaign">Campaign</a>
+      <a href="#domain-items">Items</a>
+      <a href="#domain-workflow">WorkFlow</a>
+      <a href="#domain-lifecycle">Lifecycle</a>
+      <a href="#domain-display">Display</a>
+      <a href="#domain-nested">Notes</a>
+      <a href="#domain-outcomes">Outcomes</a>
+      <a href="#domain-audit">Audit</a>
+    </div>
+    <div class="nav-domains" id="participant-domains">
+      <span class="nav-domain-label">Domains</span>
+      <a href="#cp-domain-identity">Identity</a>
+      <a href="#cp-domain-org">Organization</a>
+      <a href="#cp-domain-descriptors">Descriptors</a>
+      <a href="#cp-domain-audit">Audit</a>
+    </div>
+    <div class="nav-domains" id="item-domains">
+      <span class="nav-domain-label">Domains</span>
+      <a href="#ci-domain-identity">Identity</a>
+      <a href="#ci-domain-reference">Item Reference</a>
+      <a href="#ci-domain-audit">Audit</a>
+    </div>
+    <div class="nav-domains" id="workflow-domains">
+      <span class="nav-domain-label">Domains</span>
+      <a href="#cw-domain-identity">Identity</a>
+      <a href="#cw-domain-template">Template Origin</a>
+      <a href="#cw-domain-step">Step Definition</a>
+      <a href="#cw-domain-audit">Audit</a>
+    </div>
+    <div class="nav-domains" id="interaction-domains">
+      <span class="nav-domain-label">Domains</span>
+      <a href="#ix-domain-identity">Identity</a>
+      <a href="#ix-domain-detail">Detail</a>
+      <a href="#ix-domain-content">Content</a>
+      <a href="#ix-domain-notes">Notes</a>
+      <a href="#ix-domain-display">Display</a>
+      <a href="#ix-domain-audit">Audit</a>
+    </div>
+  </div>
+
+  <!-- CASE -->
+  <div class="entity-section" id="case">
+    <div class="entity-header">
+      <h2>CASE</h2>
+      <div class="subtitle">Care management case &mdash; central entity of the Campaigns, Cases, and Interactions Schema Group &bull; 35 fields across 10 domains</div>
+    </div>
+
+    <div class="entity-meta">
+      <div class="meta-item">
+        <span class="meta-label">SDK Source</span>
+        <span class="meta-value">aCase, Case_Simple</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">MongoDB</span>
+        <span class="meta-value">pmi_dev.patient_case (72,770)<br>datahub_gold_pmm_dev.moi_case (1,655)<br>datahub_gold_pmm_dev.financial_controls_case (1,981)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">BigQuery Table</span>
+        <span class="meta-value">edm_intervention.case</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Partitioning</span>
+        <span class="meta-value">initiated_date (MONTH)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Clustering</span>
+        <span class="meta-value">case_origin, program_key, campaign_id</span>
+      </div>
+    </div>
+
+    <div class="section-title">Field Definitions by Domain</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Domain 1: Identity & Origin -->
+          <tr class="domain-heading" id="domain-identity"><td colspan="5">1. Identity &amp; Origin<span class="domain-count">3 fields</span></td></tr>
+          <tr><td>1</td><td class="field-name">case_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-pk">PK</span><span class="constraint-badge badge-r">R</span></td><td>Unique case identifier</td></tr>
+          <tr><td>2</td><td class="field-name">case_origin</td><td class="field-type">json</td><td><span class="constraint-badge badge-r">R</span></td><td>Origin(s) of the case &mdash; JSON array of sources (e.g. patient, moi, financial_control, referral, analytics)</td></tr>
+          <tr><td>3</td><td class="field-name">case_subject_type</td><td class="field-type">string(20)</td><td></td><td>Subject type (Patient)</td></tr>
+
+          <!-- Domain 2: Case Participants -->
+          <tr class="domain-heading" id="domain-participants"><td colspan="5">2. Case Participants<span class="domain-count">1 field &rarr; CASE_PARTICIPANT entity (18 fields)</span></td></tr>
+          <tr><td>4</td><td class="field-name">case_participants_array_id</td><td class="field-type">json</td><td></td><td>Participant array (JSON in Mongo; exploded to CASE_PARTICIPANT in BQ)</td></tr>
+
+          <!-- Domain 3: Campaign & Performance Lever -->
+          <tr class="domain-heading" id="domain-campaign"><td colspan="5">3. Campaign &amp; Performance Lever<span class="domain-count">7 fields &mdash; references conceptual entities (future)</span></td></tr>
+          <tr><td>5</td><td class="field-name">campaign_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to CAMPAIGN (conceptual &mdash; future entity)</td></tr>
+          <tr><td>6</td><td class="field-name">campaign_name</td><td class="field-type">string(255)</td><td></td><td>Denormalized campaign name</td></tr>
+          <tr><td>7</td><td class="field-name">campaign_health_plan_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to ORG &mdash; health plan that scopes this campaign</td></tr>
+          <tr><td>8</td><td class="field-name">campaign_health_plan_name</td><td class="field-type">string(255)</td><td></td><td>Denormalized health plan name</td></tr>
+          <tr><td>9</td><td class="field-name">program_key</td><td class="field-type">string(100)</td><td><span class="constraint-badge badge-i">I</span></td><td>Analytics program key (edison_model_1, nadac_reprice, etc.)</td></tr>
+          <tr><td>10</td><td class="field-name">performance_lever_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to PERFORMANCE_LEVER (conceptual &mdash; future entity)</td></tr>
+          <tr><td>11</td><td class="field-name">performance_lever_name</td><td class="field-type">string(255)</td><td></td><td>Denormalized performance lever name</td></tr>
+
+          <!-- Domain 4: Case Items -->
+          <tr class="domain-heading" id="domain-items"><td colspan="5">4. Case Items<span class="domain-count">1 field &rarr; CASE_ITEM (9 fields) &mdash; links MOI, Member, Claim, Rx, Parent Case</span></td></tr>
+          <tr><td>12</td><td class="field-name">case_items_array_id</td><td class="field-type">json</td><td></td><td>Case items array (JSON in Mongo; exploded to CASE_ITEM in BQ)</td></tr>
+
+          <!-- Domain 5: Case WorkFlow -->
+          <tr class="domain-heading" id="domain-workflow"><td colspan="5">5. Case WorkFlow<span class="domain-count">4 fields &rarr; CASE_WORKFLOW, TASK, FLAG, INTERACTION entities</span></td></tr>
+          <tr><td>13</td><td class="field-name">case_workflow_array_id</td><td class="field-type">json</td><td></td><td>Workflow steps array (JSON in Mongo; exploded to CASE_WORKFLOW in BQ)</td></tr>
+          <tr><td>14</td><td class="field-name">tasks</td><td class="field-type">json</td><td></td><td>Tasks array (JSON in Mongo; exploded to TASK in BQ)</td></tr>
+          <tr><td>15</td><td class="field-name">flags</td><td class="field-type">json</td><td></td><td>Flags array (JSON in Mongo; exploded to FLAG in BQ)</td></tr>
+          <tr><td>16</td><td class="field-name">interactions</td><td class="field-type">json</td><td></td><td>Interactions array (JSON in Mongo; exploded to INTERACTION in BQ)</td></tr>
+
+          <!-- Domain 6: Lifecycle & Dates -->
+          <tr class="domain-heading" id="domain-lifecycle"><td colspan="5">6. Lifecycle &amp; Dates<span class="domain-count">5 fields</span></td></tr>
+          <tr><td>17</td><td class="field-name">status_state</td><td class="field-type">string(20)</td><td></td><td>Lifecycle category: active, resolved</td></tr>
+          <tr><td>18</td><td class="field-name">due_date</td><td class="field-type">date</td><td></td><td>Case due date</td></tr>
+          <tr><td>19</td><td class="field-name">initiated_date</td><td class="field-type">date</td><td><span class="constraint-badge badge-r">R</span></td><td>Date case was created</td></tr>
+          <tr><td>20</td><td class="field-name">closed_date</td><td class="field-type">date</td><td></td><td>Date case was closed</td></tr>
+          <tr><td>21</td><td class="field-name">last_activity_date</td><td class="field-type">datetime</td><td></td><td>Timestamp of last activity</td></tr>
+
+          <!-- Domain 7: Case Display -->
+          <tr class="domain-heading" id="domain-display"><td colspan="5">7. Case Display<span class="domain-count">3 fields</span></td></tr>
+          <tr><td>22</td><td class="field-name">is_deleted</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Soft delete flag</td></tr>
+          <tr><td>23</td><td class="field-name">is_archived</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Archive flag</td></tr>
+          <tr><td>24</td><td class="field-name">is_hidden</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Hidden from default views</td></tr>
+
+          <!-- Domain 8: Notes & Other Extensions -->
+          <tr class="domain-heading" id="domain-nested"><td colspan="5">8. Notes &amp; Other Extensions<span class="domain-count">2 fields</span></td></tr>
+          <tr><td>25</td><td class="field-name">notes</td><td class="field-type">json</td><td></td><td>Notes array (JSON in both Mongo and BQ)</td></tr>
+          <tr><td>26</td><td class="field-name">extension</td><td class="field-type">json</td><td></td><td>FHIR extension data</td></tr>
+
+          <!-- Domain 9: Case Outcomes -->
+          <tr class="domain-heading" id="domain-outcomes"><td colspan="5">9. Case Outcomes<span class="domain-count">4 fields &rarr; GOAL, OUTCOME, SAVINGS_EVENT entities</span></td></tr>
+          <tr><td>27</td><td class="field-name">goals</td><td class="field-type">json</td><td></td><td>Goals array (JSON in Mongo; exploded to GOAL in BQ)</td></tr>
+          <tr><td>28</td><td class="field-name">identified_savings_total</td><td class="field-type">decimal(14,2)</td><td></td><td>Total identified savings</td></tr>
+          <tr><td>29</td><td class="field-name">realized_savings_total</td><td class="field-type">decimal(14,2)</td><td></td><td>Total realized savings</td></tr>
+          <tr><td>30</td><td class="field-name">last_realized_date</td><td class="field-type">date</td><td></td><td>Date of last realized savings</td></tr>
+
+          <!-- Domain 10: Audit -->
+          <tr class="domain-heading" id="domain-audit"><td colspan="5">10. Audit<span class="domain-count">5 fields &rarr; CASE_LOG (9 fields)</span></td></tr>
+          <tr><td>31</td><td class="field-name">log</td><td class="field-type">json</td><td></td><td>Case audit log array (JSON in Mongo; exploded to CASE_LOG in BQ)</td></tr>
+          <tr><td>32</td><td class="field-name">created_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Record creation timestamp</td></tr>
+          <tr><td>33</td><td class="field-name">updated_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Last update timestamp</td></tr>
+          <tr><td>34</td><td class="field-name">created_by</td><td class="field-type">string(100)</td><td></td><td>Creator user ID</td></tr>
+          <tr><td>35</td><td class="field-name">updated_by</td><td class="field-type">string(100)</td><td></td><td>Last updater user ID</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" id="case-sdk">SDK &rarr; EDM Field Mapping</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SDK Field (aCase)</th>
+            <th></th>
+            <th>EDM Field</th>
+            <th>Transformation Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sdk-field">id / _id</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_id</td><td>ObjectId &rarr; UUID</td></tr>
+          <tr><td class="sdk-field">source + referralSource</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_origin</td><td>Merged into JSON array of origins</td></tr>
+          <tr><td class="sdk-field">wellnecityId</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_id</td><td>Wellnecity participant row</td></tr>
+          <tr><td class="sdk-field">caseId</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_id</td><td>External participant rows</td></tr>
+          <tr><td class="sdk-field">name</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_name</td><td>Per-party case name</td></tr>
+          <tr><td class="sdk-field">description</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_description</td><td>Per-party description</td></tr>
+          <tr><td class="sdk-field">type.value</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_type</td><td>Per-party type</td></tr>
+          <tr><td class="sdk-field">type.display</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_type_display</td><td>Per-party type display</td></tr>
+          <tr><td class="sdk-field">caseSubtype</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_subtype</td><td>Per-party subtype</td></tr>
+          <tr><td class="sdk-field">caseSubtypeList</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_subtype_list</td><td>Per-party subtypes</td></tr>
+          <tr><td class="sdk-field">programKey</td><td class="arrow-cell">&rarr;</td><td class="edm-field">program_key</td><td></td></tr>
+          <tr><td class="sdk-field">status.value</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_status</td><td>Per-party status</td></tr>
+          <tr><td class="sdk-field">status.display</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_status_display</td><td>Per-party status display</td></tr>
+          <tr><td class="sdk-field">status.state</td><td class="arrow-cell">&rarr;</td><td class="edm-field">status_state</td><td>Lifecycle state stays on CASE</td></tr>
+          <tr><td class="sdk-field">vendorCaseStatus</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_case_status</td><td>Vendor participant row</td></tr>
+          <tr><td class="sdk-field">owner</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_owner_person_id</td><td>Per-party owner (PERSON FK)</td></tr>
+          <tr><td class="sdk-field">subject.id</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_ITEM .item_id (item_type='member')</td><td>Member linked via CASE_ITEM</td></tr>
+          <tr><td class="sdk-field">subjectType</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_subject_type</td><td></td></tr>
+          <tr><td class="sdk-field">client.id</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; CASE_PARTICIPANT .case_participant_org_id</td><td>Employer participant row</td></tr>
+          <tr><td class="sdk-field">dueDate</td><td class="arrow-cell">&rarr;</td><td class="edm-field">due_date</td><td></td></tr>
+          <tr><td class="sdk-field">initiatedDate</td><td class="arrow-cell">&rarr;</td><td class="edm-field">initiated_date</td><td></td></tr>
+          <tr><td class="sdk-field">closedDate</td><td class="arrow-cell">&rarr;</td><td class="edm-field">closed_date</td><td></td></tr>
+          <tr><td class="sdk-field">lastActivityDate</td><td class="arrow-cell">&rarr;</td><td class="edm-field">last_activity_date</td><td></td></tr>
+          <tr><td class="sdk-field">isHidden</td><td class="arrow-cell">&rarr;</td><td class="edm-field">is_hidden</td><td></td></tr>
+          <tr><td class="sdk-field">notes</td><td class="arrow-cell">&rarr;</td><td class="edm-field">notes</td><td>Array &rarr; JSON</td></tr>
+          <tr><td class="sdk-field">savingStats.identifiedSavingsTotal</td><td class="arrow-cell">&rarr;</td><td class="edm-field">identified_savings_total</td><td></td></tr>
+          <tr><td class="sdk-field">savingStats.realizedSavingsTotal</td><td class="arrow-cell">&rarr;</td><td class="edm-field">realized_savings_total</td><td></td></tr>
+          <tr><td class="sdk-field">savingStats.lastRealizedDate</td><td class="arrow-cell">&rarr;</td><td class="edm-field">last_realized_date</td><td></td></tr>
+          <tr><td class="sdk-field">extension</td><td class="arrow-cell">&rarr;</td><td class="edm-field">extension</td><td>Array &rarr; JSON</td></tr>
+          <tr><td class="sdk-field">campaignId</td><td class="arrow-cell">&rarr;</td><td class="edm-field">campaign_id</td><td>Campaign reference (conceptual)</td></tr>
+          <tr><td class="sdk-field">campaignName</td><td class="arrow-cell">&rarr;</td><td class="edm-field">campaign_name</td><td>Denormalized</td></tr>
+          <tr><td class="sdk-field">campaignHealthPlanId</td><td class="arrow-cell">&rarr;</td><td class="edm-field">campaign_health_plan_id</td><td>Health plan ORG reference</td></tr>
+          <tr><td class="sdk-field">campaignHealthPlanName</td><td class="arrow-cell">&rarr;</td><td class="edm-field">campaign_health_plan_name</td><td>Denormalized</td></tr>
+          <tr><td class="sdk-field">performanceLeverId</td><td class="arrow-cell">&rarr;</td><td class="edm-field">performance_lever_id</td><td>Performance Lever reference (conceptual)</td></tr>
+          <tr><td class="sdk-field">performanceLeverName</td><td class="arrow-cell">&rarr;</td><td class="edm-field">performance_lever_name</td><td>Denormalized</td></tr>
+          <tr><td class="sdk-field">participants[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_participants_array_id &rarr; CASE_PARTICIPANT table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">items[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_items_array_id &rarr; CASE_ITEM table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">workflow[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_workflow_array_id &rarr; CASE_WORKFLOW table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">log[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">log &rarr; CASE_LOG table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">linkedModules[] (tasks)</td><td class="arrow-cell">&rarr;</td><td class="edm-field">tasks &rarr; TASK table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">linkedModules[] (flags)</td><td class="arrow-cell">&rarr;</td><td class="edm-field">flags &rarr; FLAG table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">linkedModules[] (goals)</td><td class="arrow-cell">&rarr;</td><td class="edm-field">goals &rarr; GOAL table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">linkedModules[] (interactions)</td><td class="arrow-cell">&rarr;</td><td class="edm-field">interactions &rarr; INTERACTION table</td><td>JSON in Mongo, table in BQ</td></tr>
+          <tr><td class="sdk-field">documents[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; DOCUMENT_REFERENCE table</td><td>Separate entity in BQ</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-panels">
+      <div class="info-panel">
+        <h4>Relationships</h4>
+        <ul>
+          <li>CASE N:1 CAMPAIGN (belongs to / summarized by &mdash; conceptual, future entity)</li>
+          <li>CASE N:1 PERFORMANCE_LEVER (rolls up to &mdash; conceptual, future entity)</li>
+          <li>CASE N:1 ORG (campaign scoped by health plan)</li>
+          <li>CASE 1:N CASE_PARTICIPANT (has participants)</li>
+          <li>CASE 1:N CASE_ITEM (links MOI, Member, Claim, Rx, Parent Case)</li>
+          <li>CASE 1:N CASE_WORKFLOW (has workflow steps)</li>
+          <li>CASE 1:N CASE_LOG (tracks)</li>
+          <li>CASE 1:N TASK / FLAG / GOAL / INTERACTION</li>
+          <li>CASE 1:1 OUTCOME (results in)</li>
+          <li>CASE 1:N DOCUMENT_REFERENCE (has documents)</li>
+        </ul>
+      </div>
+      <div class="info-panel">
+        <h4>Business Rules</h4>
+        <ul>
+          <li><code>case_origin</code> is a JSON array of sources (patient, moi, financial_control, referral, analytics); supports multiple origins per case</li>
+          <li><code>program_key</code> is required for moi and financial_control sources</li>
+          <li><code>campaign_id</code> references a Campaign (conceptual); scoped by health plan via <code>campaign_health_plan_id</code></li>
+          <li><code>performance_lever_id</code> references the Performance Lever Library (conceptual)</li>
+          <li>Campaigns aggregate/filter by Health Plan Sponsor, Vendor, Broker via CASE_PARTICIPANT</li>
+          <li>Workflow steps pulled from Performance Lever Library at case creation</li>
+          <li>Case Participants (case ID, name, type, status, owner) live on CASE_PARTICIPANT</li>
+          <li>Wellnecity is a participant like any other &mdash; no internal/external distinction</li>
+          <li>MOI, Member, Claim, Rx, Parent Case linked via CASE_ITEM</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="index-panel">
+      <h4>Indexes</h4>
+      <div class="index-list">
+        <span class="index-tag">idx_case_program (program_key)</span>
+        <span class="index-tag">idx_case_origin (case_origin)</span>
+        <span class="index-tag">idx_case_initiated (initiated_date)</span>
+        <span class="index-tag">idx_case_campaign (campaign_id)</span>
+        <span class="index-tag">idx_case_health_plan (campaign_health_plan_id)</span>
+        <span class="index-tag">idx_case_perf_lever (performance_lever_id)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE_PARTICIPANT -->
+  <div class="entity-section" id="participant">
+    <div class="entity-header">
+      <h2>CASE_PARTICIPANT</h2>
+      <div class="subtitle">Case Participants domain &mdash; one row per participating organization &bull; 18 fields across 4 domains &bull; FKs to ORG/PERSON (PR #5)</div>
+    </div>
+
+    <div class="entity-meta">
+      <div class="meta-item">
+        <span class="meta-label">SDK Source</span>
+        <span class="meta-value">Participant fields from aCase</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">MongoDB</span>
+        <span class="meta-value">Embedded in case.participants[]</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">BigQuery Table</span>
+        <span class="meta-value">edm_intervention.case_participant</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Clustering</span>
+        <span class="meta-value">case_id, case_participant_org_id</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">ORG/PERSON</span>
+        <span class="meta-value">case_participant_org_id &rarr; ORG, case_participant_owner_person_id &rarr; PERSON</span>
+      </div>
+    </div>
+
+    <div class="section-title">Field Definitions by Domain</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Domain 1: Identity -->
+          <tr class="domain-heading" id="cp-domain-identity"><td colspan="5">1. Identity<span class="domain-count">2 fields</span></td></tr>
+          <tr><td>1</td><td class="field-name">case_participant_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-pk">PK</span><span class="constraint-badge badge-r">R</span></td><td>Unique row identifier</td></tr>
+          <tr><td>2</td><td class="field-name">case_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Reference to CASE</td></tr>
+
+          <!-- Domain 2: Organization & Ownership -->
+          <tr class="domain-heading" id="cp-domain-org"><td colspan="5">2. Organization &amp; Ownership<span class="domain-count">4 fields</span></td></tr>
+          <tr><td>3</td><td class="field-name">case_participant_org_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Reference to ORG (the participating organization)</td></tr>
+          <tr><td>4</td><td class="field-name">case_participant_owner_person_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to PERSON (case owner/contact at that org, optional)</td></tr>
+          <tr><td>5</td><td class="field-name">case_participant_role</td><td class="field-type">string(50)</td><td><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Role: originator, tpa, vendor, employer, clinical_partner, carrier, broker</td></tr>
+          <tr><td>6</td><td class="field-name">case_participant_is_primary</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Whether this is the primary/originating participant</td></tr>
+
+          <!-- Domain 3: Case Descriptors -->
+          <tr class="domain-heading" id="cp-domain-descriptors"><td colspan="5">3. Case Descriptors<span class="domain-count">9 fields</span></td></tr>
+          <tr><td>7</td><td class="field-name">case_participant_case_id</td><td class="field-type">string(100)</td><td><span class="constraint-badge badge-i">I</span></td><td>This party's case ID / reference number</td></tr>
+          <tr><td>8</td><td class="field-name">case_participant_case_name</td><td class="field-type">string(255)</td><td></td><td>This party's name/label for the case</td></tr>
+          <tr><td>9</td><td class="field-name">case_participant_case_description</td><td class="field-type">string</td><td></td><td>This party's description of the case</td></tr>
+          <tr><td>10</td><td class="field-name">case_participant_case_type</td><td class="field-type">string(50)</td><td></td><td>This party's case type classification</td></tr>
+          <tr><td>11</td><td class="field-name">case_participant_case_type_display</td><td class="field-type">string(100)</td><td></td><td>Display name for case type</td></tr>
+          <tr><td>12</td><td class="field-name">case_participant_case_subtype</td><td class="field-type">string(50)</td><td></td><td>This party's subtype</td></tr>
+          <tr><td>13</td><td class="field-name">case_participant_case_subtype_list</td><td class="field-type">json</td><td></td><td>Array of subtypes</td></tr>
+          <tr><td>14</td><td class="field-name">case_participant_case_status</td><td class="field-type">string(30)</td><td><span class="constraint-badge badge-i">I</span></td><td>This party's status for the case</td></tr>
+          <tr><td>15</td><td class="field-name">case_participant_case_status_display</td><td class="field-type">string(50)</td><td></td><td>Status display name</td></tr>
+
+          <!-- Domain 4: Audit -->
+          <tr class="domain-heading" id="cp-domain-audit"><td colspan="5">4. Audit<span class="domain-count">3 fields</span></td></tr>
+          <tr><td>16</td><td class="field-name">is_deleted</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Soft delete flag</td></tr>
+          <tr><td>17</td><td class="field-name">created_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Record creation timestamp</td></tr>
+          <tr><td>18</td><td class="field-name">updated_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Last update timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-panels">
+      <div class="info-panel">
+        <h4>Relationships</h4>
+        <ul>
+          <li>CASE_PARTICIPANT N:1 CASE (belongs to)</li>
+          <li>CASE_PARTICIPANT N:1 ORG (participating org &mdash; via case_participant_org_id, from PR #5)</li>
+          <li>CASE_PARTICIPANT N:1 PERSON (case owner &mdash; via case_participant_owner_person_id, from PR #5, optional)</li>
+        </ul>
+      </div>
+      <div class="info-panel">
+        <h4>Business Rules</h4>
+        <ul>
+          <li>Each case must have at least one participant with <code>case_participant_is_primary = true</code></li>
+          <li>Wellnecity is a participant with <code>case_participant_role = 'originator'</code></li>
+          <li>All parties are ORGs (PR #5): employer, vendor, TPA, carrier, broker</li>
+          <li><code>case_participant_owner_person_id</code> optionally references the case owner at that org</li>
+          <li>JSON array in MongoDB; each element becomes a row in BigQuery</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="index-panel">
+      <h4>Indexes</h4>
+      <div class="index-list">
+        <span class="index-tag">idx_participant_case (case_id)</span>
+        <span class="index-tag">idx_participant_org (case_participant_org_id)</span>
+        <span class="index-tag">idx_participant_role (case_participant_role)</span>
+        <span class="index-tag">idx_participant_status (case_participant_case_status)</span>
+        <span class="index-tag">idx_participant_case_id (case_participant_case_id)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE_ITEM -->
+  <div class="entity-section" id="case-item">
+    <div class="entity-header">
+      <h2>CASE_ITEM</h2>
+      <div class="subtitle">Linking table &mdash; associates a case with Members, MOIs, Claims, Prescriptions, Parent Cases, and more &bull; 9 fields across 3 domains</div>
+    </div>
+
+    <div class="entity-meta">
+      <div class="meta-item">
+        <span class="meta-label">SDK Source</span>
+        <span class="meta-value">caseItemsModel (aCase.items[])</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">MongoDB</span>
+        <span class="meta-value">Embedded in case.items[]</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">BigQuery Table</span>
+        <span class="meta-value">edm_intervention.case_item</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Clustering</span>
+        <span class="meta-value">case_id, item_type</span>
+      </div>
+    </div>
+
+    <div class="section-title">Field Definitions by Domain</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Domain 1: Identity -->
+          <tr class="domain-heading" id="ci-domain-identity"><td colspan="5">1. Identity<span class="domain-count">2 fields</span></td></tr>
+          <tr><td>1</td><td class="field-name">case_item_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-pk">PK</span><span class="constraint-badge badge-r">R</span></td><td>Unique case item identifier</td></tr>
+          <tr><td>2</td><td class="field-name">case_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Reference to CASE</td></tr>
+
+          <!-- Domain 2: Item Reference -->
+          <tr class="domain-heading" id="ci-domain-reference"><td colspan="5">2. Item Reference<span class="domain-count">4 fields &mdash; polymorphic link to any entity</span></td></tr>
+          <tr><td>3</td><td class="field-name">item_id</td><td class="field-type">string(100)</td><td><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Referenced item identifier (e.g. member UUID, MOI UUID, claim ID)</td></tr>
+          <tr><td>4</td><td class="field-name">item_type</td><td class="field-type">string(50)</td><td><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Item type: member, moi, claim, prescription, case, condition, medication, other</td></tr>
+          <tr><td>5</td><td class="field-name">item_reference_type</td><td class="field-type">string(50)</td><td></td><td>Reference type for additional classification</td></tr>
+          <tr><td>6</td><td class="field-name">description</td><td class="field-type">string</td><td></td><td>Item description</td></tr>
+
+          <!-- Domain 3: Audit -->
+          <tr class="domain-heading" id="ci-domain-audit"><td colspan="5">3. Audit<span class="domain-count">3 fields</span></td></tr>
+          <tr><td>7</td><td class="field-name">is_deleted</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Soft delete flag</td></tr>
+          <tr><td>8</td><td class="field-name">is_archived</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Archive flag</td></tr>
+          <tr><td>9</td><td class="field-name">created_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Record creation timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-panels">
+      <div class="info-panel">
+        <h4>Relationships</h4>
+        <ul>
+          <li>CASE_ITEM N:1 CASE (belongs to)</li>
+          <li>CASE_ITEM &rarr; MEMBER (when item_type=&lsquo;member&rsquo;)</li>
+          <li>CASE_ITEM &rarr; MOI (when item_type=&lsquo;moi&rsquo;)</li>
+          <li>CASE_ITEM &rarr; CASE (when item_type=&lsquo;case&rsquo; &mdash; parent case link)</li>
+        </ul>
+      </div>
+      <div class="info-panel">
+        <h4>Business Rules</h4>
+        <ul>
+          <li>Polymorphic link: <code>item_type</code> determines what <code>item_id</code> refers to</li>
+          <li>A case&rsquo;s subject member is linked with <code>item_type = 'member'</code></li>
+          <li>A case&rsquo;s originating MOI is linked with <code>item_type = 'moi'</code></li>
+          <li>Parent case linkage uses <code>item_type = 'case'</code></li>
+          <li>Multiple items of the same type can be linked to a single case (e.g. multiple claims)</li>
+          <li>JSON array in MongoDB; each element becomes a row in BigQuery</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="index-panel">
+      <h4>Indexes</h4>
+      <div class="index-list">
+        <span class="index-tag">idx_case_item_case (case_id)</span>
+        <span class="index-tag">idx_case_item_type (item_type)</span>
+        <span class="index-tag">idx_case_item_ref (item_id)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE_WORKFLOW -->
+  <div class="entity-section" id="case-workflow">
+    <div class="entity-header">
+      <h2>CASE_WORKFLOW</h2>
+      <div class="subtitle">Workflow steps &mdash; template steps from Performance Lever Library or ad-hoc planned steps &bull; 18 fields across 4 domains</div>
+    </div>
+
+    <div class="entity-meta">
+      <div class="meta-item">
+        <span class="meta-label">SDK Source</span>
+        <span class="meta-value">Workflow step fields from aCase</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">MongoDB</span>
+        <span class="meta-value">Embedded in case.workflow[]</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">BigQuery Table</span>
+        <span class="meta-value">edm_intervention.case_workflow</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Clustering</span>
+        <span class="meta-value">case_id, case_workflow_case_type</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Template Source</span>
+        <span class="meta-value">Wellnecity Performance Lever Library</span>
+      </div>
+    </div>
+
+    <div class="section-title">Field Definitions by Domain</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Domain 1: Identity -->
+          <tr class="domain-heading" id="cw-domain-identity"><td colspan="5">1. Identity<span class="domain-count">2 fields</span></td></tr>
+          <tr><td>1</td><td class="field-name">case_workflow_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-pk">PK</span><span class="constraint-badge badge-r">R</span></td><td>Unique workflow step identifier</td></tr>
+          <tr><td>2</td><td class="field-name">case_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Reference to CASE</td></tr>
+
+          <!-- Domain 2: Template Origin -->
+          <tr class="domain-heading" id="cw-domain-template"><td colspan="5">2. Template Origin<span class="domain-count">4 fields &mdash; from Performance Lever Library</span></td></tr>
+          <tr><td>3</td><td class="field-name">case_workflow_template_id</td><td class="field-type">string(100)</td><td><span class="constraint-badge badge-i">I</span></td><td>Performance Lever Library template step ID (null if ad-hoc)</td></tr>
+          <tr><td>4</td><td class="field-name">case_workflow_template_name</td><td class="field-type">string(255)</td><td></td><td>Performance Lever Library template name</td></tr>
+          <tr><td>5</td><td class="field-name">case_workflow_case_type</td><td class="field-type">string(50)</td><td><span class="constraint-badge badge-i">I</span></td><td>Wellnecity Case Type that sourced this step</td></tr>
+          <tr><td>6</td><td class="field-name">case_workflow_is_template</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Whether this step came from a template (vs. ad-hoc)</td></tr>
+
+          <!-- Domain 3: Step Definition -->
+          <tr class="domain-heading" id="cw-domain-step"><td colspan="5">3. Step Definition<span class="domain-count">9 fields</span></td></tr>
+          <tr><td>7</td><td class="field-name">case_workflow_step_name</td><td class="field-type">string(255)</td><td><span class="constraint-badge badge-r">R</span></td><td>Step name/title</td></tr>
+          <tr><td>8</td><td class="field-name">case_workflow_step_description</td><td class="field-type">string</td><td></td><td>Step description / instructions</td></tr>
+          <tr><td>9</td><td class="field-name">case_workflow_step_sequence</td><td class="field-type">integer</td><td><span class="constraint-badge badge-r">R</span></td><td>Order in the workflow (1, 2, 3&hellip;)</td></tr>
+          <tr><td>10</td><td class="field-name">case_workflow_step_category</td><td class="field-type">string(50)</td><td></td><td>Category: assessment, outreach, review, authorization, referral, closure</td></tr>
+          <tr><td>11</td><td class="field-name">case_workflow_step_status</td><td class="field-type">string(30)</td><td><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Status: pending, in_progress, completed, skipped, blocked</td></tr>
+          <tr><td>12</td><td class="field-name">case_workflow_step_status_display</td><td class="field-type">string(50)</td><td></td><td>Status display name</td></tr>
+          <tr><td>13</td><td class="field-name">case_workflow_due_date</td><td class="field-type">date</td><td></td><td>When this step is due</td></tr>
+          <tr><td>14</td><td class="field-name">case_workflow_completed_date</td><td class="field-type">date</td><td></td><td>When this step was completed</td></tr>
+          <tr><td>15</td><td class="field-name">case_workflow_assigned_person_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to PERSON assigned to this step</td></tr>
+
+          <!-- Domain 4: Audit -->
+          <tr class="domain-heading" id="cw-domain-audit"><td colspan="5">4. Audit<span class="domain-count">3 fields</span></td></tr>
+          <tr><td>16</td><td class="field-name">is_deleted</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Soft delete flag</td></tr>
+          <tr><td>17</td><td class="field-name">created_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Record creation timestamp</td></tr>
+          <tr><td>18</td><td class="field-name">updated_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Last update timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-panels">
+      <div class="info-panel">
+        <h4>Relationships</h4>
+        <ul>
+          <li>CASE_WORKFLOW N:1 CASE (belongs to)</li>
+          <li>CASE_WORKFLOW N:1 PERSON (assigned to &mdash; via case_workflow_assigned_person_id, from PR #5, optional)</li>
+        </ul>
+      </div>
+      <div class="info-panel">
+        <h4>Business Rules</h4>
+        <ul>
+          <li>Template steps pulled from Performance Lever Library at case creation</li>
+          <li><code>case_workflow_is_template = true</code> &rarr; from library; <code>false</code> &rarr; ad-hoc</li>
+          <li><code>case_workflow_template_id</code> ties to Performance Lever Library; null for ad-hoc</li>
+          <li><code>case_workflow_step_sequence</code> defines step ordering within a case</li>
+          <li><code>case_workflow_completed_date</code> set when status transitions to completed</li>
+          <li>JSON array in MongoDB; each element becomes a row in BigQuery</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="index-panel">
+      <h4>Indexes</h4>
+      <div class="index-list">
+        <span class="index-tag">idx_workflow_case (case_id)</span>
+        <span class="index-tag">idx_workflow_template (case_workflow_template_id)</span>
+        <span class="index-tag">idx_workflow_case_type (case_workflow_case_type)</span>
+        <span class="index-tag">idx_workflow_status (case_workflow_step_status)</span>
+        <span class="index-tag">idx_workflow_assigned (case_workflow_assigned_person_id)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTION -->
+  <div class="entity-section" id="interaction">
+    <div class="entity-header">
+      <h2>INTERACTION</h2>
+      <div class="subtitle">Member contact event &mdash; phone, email, in-person, and other communications &bull; 29 fields across 6 domains</div>
+    </div>
+
+    <div class="entity-meta">
+      <div class="meta-item">
+        <span class="meta-label">SDK Source</span>
+        <span class="meta-value">aInteraction (extends aWork_Queue)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">MongoDB</span>
+        <span class="meta-value">pmi_dev.work_queue (type=Interaction)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">BigQuery Table</span>
+        <span class="meta-value">edm_intervention.interaction</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Partitioning</span>
+        <span class="meta-value">sent_on (DAY)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Clustering</span>
+        <span class="meta-value">case_id, member_id</span>
+      </div>
+    </div>
+
+    <div class="section-title">Field Definitions by Domain</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Constraints</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Domain 1: Identity -->
+          <tr class="domain-heading" id="ix-domain-identity"><td colspan="5">1. Identity<span class="domain-count">5 fields</span></td></tr>
+          <tr><td>1</td><td class="field-name">interaction_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-pk">PK</span><span class="constraint-badge badge-r">R</span></td><td>Unique interaction identifier</td></tr>
+          <tr><td>2</td><td class="field-name">case_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to CASE</td></tr>
+          <tr><td>3</td><td class="field-name">member_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Reference to MEMBER (subject)</td></tr>
+          <tr><td>4</td><td class="field-name">employer_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to EMPLOYER (client)</td></tr>
+          <tr><td>5</td><td class="field-name">partner_id</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Reference to PARTNER (conducting org)</td></tr>
+
+          <!-- Domain 2: Interaction Detail -->
+          <tr class="domain-heading" id="ix-domain-detail"><td colspan="5">2. Interaction Detail<span class="domain-count">9 fields</span></td></tr>
+          <tr><td>6</td><td class="field-name">interaction_type</td><td class="field-type">string(30)</td><td><span class="constraint-badge badge-r">R</span></td><td>Type: Interaction</td></tr>
+          <tr><td>7</td><td class="field-name">medium</td><td class="field-type">json</td><td></td><td>Interaction methods (phone, email, in-person, etc.) JSON array</td></tr>
+          <tr><td>8</td><td class="field-name">topic</td><td class="field-type">string(255)</td><td><span class="constraint-badge badge-r">R</span></td><td>Reason for interaction</td></tr>
+          <tr><td>9</td><td class="field-name">categories</td><td class="field-type">json</td><td></td><td>Interaction category list (JSON array)</td></tr>
+          <tr><td>10</td><td class="field-name">status</td><td class="field-type">string(30)</td><td><span class="constraint-badge badge-r">R</span><span class="constraint-badge badge-i">I</span></td><td>Interaction status</td></tr>
+          <tr><td>11</td><td class="field-name">status_reason</td><td class="field-type">string(255)</td><td></td><td>Reason for current status</td></tr>
+          <tr><td>12</td><td class="field-name">priority</td><td class="field-type">string(20)</td><td></td><td>Priority level</td></tr>
+          <tr><td>13</td><td class="field-name">sent_on</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Date/time interaction occurred</td></tr>
+          <tr><td>14</td><td class="field-name">duration_minutes</td><td class="field-type">decimal(8,2)</td><td></td><td>Length of interaction in minutes</td></tr>
+
+          <!-- Domain 3: Content & Recording -->
+          <tr class="domain-heading" id="ix-domain-content"><td colspan="5">3. Content &amp; Recording<span class="domain-count">6 fields</span></td></tr>
+          <tr><td>15</td><td class="field-name">description</td><td class="field-type">string</td><td></td><td>Interaction description</td></tr>
+          <tr><td>16</td><td class="field-name">message</td><td class="field-type">string</td><td></td><td>User-facing display message</td></tr>
+          <tr><td>17</td><td class="field-name">encounter_reference</td><td class="field-type">string(100)</td><td></td><td>Reference to FHIR Encounter</td></tr>
+          <tr><td>18</td><td class="field-name">assigned_to</td><td class="field-type">uuid</td><td><span class="constraint-badge badge-fk">FK</span><span class="constraint-badge badge-i">I</span></td><td>Assigned owner</td></tr>
+          <tr><td>19</td><td class="field-name">recorded_by</td><td class="field-type">string(100)</td><td></td><td>User who recorded the interaction</td></tr>
+          <tr><td>20</td><td class="field-name">recorded_by_name</td><td class="field-type">string(255)</td><td></td><td>Denormalized recorder name</td></tr>
+
+          <!-- Domain 4: Notes & History -->
+          <tr class="domain-heading" id="ix-domain-notes"><td colspan="5">4. Notes &amp; History<span class="domain-count">2 fields</span></td></tr>
+          <tr><td>21</td><td class="field-name">notes</td><td class="field-type">json</td><td></td><td>Notes array</td></tr>
+          <tr><td>22</td><td class="field-name">reassign_history</td><td class="field-type">json</td><td></td><td>Reassignment log (JSON array of {date, from, to, by})</td></tr>
+
+          <!-- Domain 5: Display -->
+          <tr class="domain-heading" id="ix-domain-display"><td colspan="5">5. Display<span class="domain-count">3 fields</span></td></tr>
+          <tr><td>23</td><td class="field-name">is_deleted</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Soft delete flag</td></tr>
+          <tr><td>24</td><td class="field-name">is_archived</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Archive flag</td></tr>
+          <tr><td>25</td><td class="field-name">is_acknowledged</td><td class="field-type">boolean</td><td><span class="constraint-badge badge-r">R</span></td><td>Acknowledgment flag</td></tr>
+
+          <!-- Domain 6: Audit -->
+          <tr class="domain-heading" id="ix-domain-audit"><td colspan="5">6. Audit<span class="domain-count">4 fields</span></td></tr>
+          <tr><td>26</td><td class="field-name">created_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Record creation timestamp</td></tr>
+          <tr><td>27</td><td class="field-name">updated_at</td><td class="field-type">datetime</td><td><span class="constraint-badge badge-r">R</span></td><td>Last update timestamp</td></tr>
+          <tr><td>28</td><td class="field-name">created_by</td><td class="field-type">string(100)</td><td></td><td>Creator user ID</td></tr>
+          <tr><td>29</td><td class="field-name">updated_by</td><td class="field-type">string(100)</td><td></td><td>Last updater user ID</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" id="interaction-sdk">SDK &rarr; EDM Field Mapping</div>
+    <div class="field-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SDK Field (aInteraction + aWork_Queue)</th>
+            <th></th>
+            <th>EDM Field</th>
+            <th>Transformation Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sdk-field">id / _id</td><td class="arrow-cell">&rarr;</td><td class="edm-field">interaction_id</td><td>ObjectId &rarr; UUID</td></tr>
+          <tr><td class="sdk-field">subject.id</td><td class="arrow-cell">&rarr;</td><td class="edm-field">member_id</td><td>Patient ref &rarr; member FK</td></tr>
+          <tr><td class="sdk-field">client</td><td class="arrow-cell">&rarr;</td><td class="edm-field">employer_id</td><td>Client code &rarr; employer FK</td></tr>
+          <tr><td class="sdk-field">type</td><td class="arrow-cell">&rarr;</td><td class="edm-field">interaction_type</td><td>Default "Interaction"</td></tr>
+          <tr><td class="sdk-field">medium</td><td class="arrow-cell">&rarr;</td><td class="edm-field">medium</td><td>list &rarr; JSON array</td></tr>
+          <tr><td class="sdk-field">topic</td><td class="arrow-cell">&rarr;</td><td class="edm-field">topic</td><td></td></tr>
+          <tr><td class="sdk-field">categories</td><td class="arrow-cell">&rarr;</td><td class="edm-field">categories</td><td>list &rarr; JSON array</td></tr>
+          <tr><td class="sdk-field">status</td><td class="arrow-cell">&rarr;</td><td class="edm-field">status</td><td></td></tr>
+          <tr><td class="sdk-field">status_reason</td><td class="arrow-cell">&rarr;</td><td class="edm-field">status_reason</td><td></td></tr>
+          <tr><td class="sdk-field">priority</td><td class="arrow-cell">&rarr;</td><td class="edm-field">priority</td><td></td></tr>
+          <tr><td class="sdk-field">sent_on</td><td class="arrow-cell">&rarr;</td><td class="edm-field">sent_on</td><td>datetime</td></tr>
+          <tr><td class="sdk-field">duration</td><td class="arrow-cell">&rarr;</td><td class="edm-field">duration_minutes</td><td>float &rarr; decimal</td></tr>
+          <tr><td class="sdk-field">description</td><td class="arrow-cell">&rarr;</td><td class="edm-field">description</td><td></td></tr>
+          <tr><td class="sdk-field">message</td><td class="arrow-cell">&rarr;</td><td class="edm-field">message</td><td></td></tr>
+          <tr><td class="sdk-field">encounter_reference</td><td class="arrow-cell">&rarr;</td><td class="edm-field">encounter_reference</td><td>FHIR Encounter ref</td></tr>
+          <tr><td class="sdk-field">owner</td><td class="arrow-cell">&rarr;</td><td class="edm-field">assigned_to</td><td></td></tr>
+          <tr><td class="sdk-field">recorded_by</td><td class="arrow-cell">&rarr;</td><td class="edm-field">recorded_by</td><td>User ref &rarr; ID</td></tr>
+          <tr><td class="sdk-field">notes[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">notes</td><td>Array &rarr; JSON</td></tr>
+          <tr><td class="sdk-field">documents[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">&rarr; DOCUMENT_REFERENCE table</td><td>Separate entity</td></tr>
+          <tr><td class="sdk-field">interactionHistory[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">reassign_history</td><td>ReassignLog &rarr; JSON</td></tr>
+          <tr><td class="sdk-field">linkedModules[]</td><td class="arrow-cell">&rarr;</td><td class="edm-field">case_id</td><td>Resolved to direct FK</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-panels">
+      <div class="info-panel">
+        <h4>Relationships</h4>
+        <ul>
+          <li>INTERACTION N:1 CASE (belongs to)</li>
+          <li>INTERACTION N:1 MEMBER (subject)</li>
+          <li>INTERACTION N:1 EMPLOYER (client)</li>
+          <li>INTERACTION N:1 PARTNER (conducted by)</li>
+          <li>INTERACTION 1:N DOCUMENT_REFERENCE (has documents)</li>
+        </ul>
+      </div>
+      <div class="info-panel">
+        <h4>Business Rules</h4>
+        <ul>
+          <li>Maps to FHIR Communication resource</li>
+          <li><code>sent_on</code> is the actual date/time of the interaction</li>
+          <li><code>duration_minutes</code> tracks time spent</li>
+          <li><code>reassign_history</code> captures ownership changes with timestamps</li>
+          <li>Documents attached to interactions are stored in DOCUMENT_REFERENCE</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="index-panel">
+      <h4>Indexes</h4>
+      <div class="index-list">
+        <span class="index-tag">idx_interaction_case (case_id)</span>
+        <span class="index-tag">idx_interaction_member (member_id)</span>
+        <span class="index-tag">idx_interaction_sent (sent_on)</span>
+        <span class="index-tag">idx_interaction_status (status)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Constraint Legend -->
+  <div class="entity-section">
+    <div style="padding: 20px 32px;">
+      <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--purple-primary); margin-bottom: 12px;">Constraint Legend</h4>
+      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+        <span><span class="constraint-badge badge-pk">PK</span> Primary Key</span>
+        <span><span class="constraint-badge badge-fk">FK</span> Foreign Key</span>
+        <span><span class="constraint-badge badge-r">R</span> Required (NOT NULL)</span>
+        <span><span class="constraint-badge badge-u">U</span> Unique</span>
+        <span><span class="constraint-badge badge-i">I</span> Indexed</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Wellnecity EDM &mdash; Campaigns, Cases, and Interactions Schema Group v1.7 &mdash; Generated 2026-02-07
+  </div>
+
+</div>
+
+<script>
+function toggleDomains(btn, panelId) {
+  var panel = document.getElementById(panelId);
+  var allPanels = document.querySelectorAll('.nav-domains');
+  var allBtns = document.querySelectorAll('.nav-toggle');
+  var isOpen = panel.classList.contains('open');
+
+  // Close all panels and reset all buttons
+  allPanels.forEach(function(p) { p.classList.remove('open'); });
+  allBtns.forEach(function(b) { b.classList.remove('open'); });
+
+  // If this panel wasn't open, open it
+  if (!isOpen) {
+    panel.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+</script>
+</body>
+</html>
