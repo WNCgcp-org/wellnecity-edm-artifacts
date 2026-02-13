@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEALTH_RECORD TLD — Entity Relationship Diagram</title>
+  <style>
+    :root {
+      --primary: #1a5276;
+      --primary-light: #2980b9;
+      --accent: #16a085;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+      --text-light: #7f8c8d;
+      --border: #dee2e6;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 2rem 3rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 1.8rem; font-weight: 600; }
+    header p { color: rgba(255,255,255,0.85); margin-top: 0.3rem; font-size: 0.95rem; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .card-header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .card-header small {
+      font-weight: 400;
+      opacity: 0.8;
+      font-size: 0.85rem;
+      display: block;
+      margin-top: 0.2rem;
+    }
+    .card-body { padding: 1.5rem; }
+    .mermaid { display: flex; justify-content: center; }
+    .mermaid svg { max-width: 100%; height: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th {
+      background: var(--primary);
+      color: white;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-weight: 500;
+    }
+    td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: #f0f7ff; }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .tag-openehr { background: #e8f8f5; color: #0e6655; }
+    .tag-fhir { background: #fef3e2; color: #b7791f; }
+    .tag-fields { background: #eaf2f8; color: var(--primary); }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+    @media print {
+      header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>HEALTH_RECORD TLD — Entity Relationship Diagram</h1>
+  <p>Wellnecity Enterprise Data Model &bull; Hybrid openEHR + FHIR Architecture</p>
+  <span class="badge">12 Entities</span>
+  <span class="badge">~315 Fields</span>
+  <span class="badge">openEHR Semantics</span>
+  <span class="badge">FHIR R4 Interop</span>
+</header>
+
+<main>
+
+  <!-- Entity Inventory -->
+  <div class="card">
+    <div class="card-header">Entity Inventory</div>
+    <div class="card-body" style="padding:0;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Entity</th>
+            <th>openEHR Archetype</th>
+            <th>FHIR Resource</th>
+            <th>Fields</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><strong>HEALTH_RECORD_COMPOSITION</strong></td><td><span class="tag tag-openehr">COMPOSITION</span></td><td><span class="tag tag-fhir">Bundle</span></td><td><span class="tag tag-fields">24</span></td></tr>
+          <tr><td>2</td><td><strong>PROBLEM</strong></td><td><span class="tag tag-openehr">EVALUATION.problem_diagnosis</span></td><td><span class="tag tag-fhir">Condition</span></td><td><span class="tag tag-fields">26</span></td></tr>
+          <tr><td>3</td><td><strong>ALLERGY</strong></td><td><span class="tag tag-openehr">EVALUATION.adverse_reaction_risk</span></td><td><span class="tag tag-fhir">AllergyIntolerance</span></td><td><span class="tag tag-fields">28</span></td></tr>
+          <tr><td>4</td><td><strong>MEDICATION</strong></td><td><span class="tag tag-openehr">INSTRUCTION.medication_order</span></td><td><span class="tag tag-fhir">MedicationRequest</span></td><td><span class="tag tag-fields">35</span></td></tr>
+          <tr><td>5</td><td><strong>VITAL_SIGN</strong></td><td><span class="tag tag-openehr">OBSERVATION.*</span></td><td><span class="tag tag-fhir">Observation (vital-signs)</span></td><td><span class="tag tag-fields">26</span></td></tr>
+          <tr><td>6</td><td><strong>LAB_RESULT</strong></td><td><span class="tag tag-openehr">OBSERVATION.laboratory_test_result</span></td><td><span class="tag tag-fhir">Observation (laboratory)</span></td><td><span class="tag tag-fields">30</span></td></tr>
+          <tr><td>7</td><td><strong>PROCEDURE_RECORD</strong></td><td><span class="tag tag-openehr">ACTION.procedure</span></td><td><span class="tag tag-fhir">Procedure</span></td><td><span class="tag tag-fields">28</span></td></tr>
+          <tr><td>8</td><td><strong>IMMUNIZATION</strong></td><td><span class="tag tag-openehr">ACTION.immunisation</span></td><td><span class="tag tag-fhir">Immunization</span></td><td><span class="tag tag-fields">26</span></td></tr>
+          <tr><td>9</td><td><strong>CLINICAL_NOTE</strong></td><td><span class="tag tag-openehr">COMPOSITION.report</span></td><td><span class="tag tag-fhir">DocumentReference</span></td><td><span class="tag tag-fields">22</span></td></tr>
+          <tr><td>10</td><td><strong>CARE_PLAN</strong></td><td><span class="tag tag-openehr">INSTRUCTION.care_plan</span></td><td><span class="tag tag-fhir">CarePlan</span></td><td><span class="tag tag-fields">24</span></td></tr>
+          <tr><td>11</td><td><strong>ENCOUNTER_RECORD</strong></td><td><span class="tag tag-openehr">COMPOSITION.encounter</span></td><td><span class="tag tag-fhir">Encounter</span></td><td><span class="tag tag-fields">28</span></td></tr>
+          <tr><td>12</td><td><strong>HEALTH_RECORD_PROVENANCE</strong></td><td><span class="tag tag-openehr">RM.AUDIT_DETAILS</span></td><td><span class="tag tag-fhir">Provenance</span></td><td><span class="tag tag-fields">18</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Intra-TLD ERD -->
+  <div class="card">
+    <div class="card-header">
+      HEALTH_RECORD Internal Relationships
+      <small>Relationships between entities within the HEALTH_RECORD TLD</small>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+erDiagram
+    HEALTH_RECORD_COMPOSITION ||--o{ PROBLEM : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ ALLERGY : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ MEDICATION : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ VITAL_SIGN : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ LAB_RESULT : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ PROCEDURE_RECORD : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ IMMUNIZATION : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ CLINICAL_NOTE : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ CARE_PLAN : "contains"
+    HEALTH_RECORD_COMPOSITION ||--o{ ENCOUNTER_RECORD : "contains"
+
+    ENCOUNTER_RECORD ||--o{ PROBLEM : "diagnoses"
+    ENCOUNTER_RECORD ||--o{ VITAL_SIGN : "recorded during"
+    ENCOUNTER_RECORD ||--o{ LAB_RESULT : "ordered during"
+    ENCOUNTER_RECORD ||--o{ PROCEDURE_RECORD : "performed during"
+    ENCOUNTER_RECORD ||--o{ IMMUNIZATION : "administered during"
+    ENCOUNTER_RECORD ||--o{ CLINICAL_NOTE : "documented during"
+    ENCOUNTER_RECORD ||--o{ CARE_PLAN : "created during"
+
+    CARE_PLAN }o--o{ PROBLEM : "addresses"
+
+    HEALTH_RECORD_PROVENANCE }o--|| HEALTH_RECORD_COMPOSITION : "tracks"
+    HEALTH_RECORD_PROVENANCE }o--|| PROBLEM : "tracks"
+    HEALTH_RECORD_PROVENANCE }o--|| ALLERGY : "tracks"
+    HEALTH_RECORD_PROVENANCE }o--|| MEDICATION : "tracks"
+    HEALTH_RECORD_PROVENANCE }o--|| ENCOUNTER_RECORD : "tracks"
+      </pre>
+    </div>
+  </div>
+
+  <!-- Cross-TLD: HEALTH_RECORD to CORE -->
+  <div class="card">
+    <div class="card-header">
+      Cross-TLD: HEALTH_RECORD to CORE
+      <small>All clinical entities are member-centric via CORE.MEMBER</small>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+erDiagram
+    CORE_MEMBER ||--o{ HEALTH_RECORD_COMPOSITION : "has health records"
+    CORE_MEMBER ||--o{ PROBLEM : "has conditions"
+    CORE_MEMBER ||--o{ ALLERGY : "has allergies"
+    CORE_MEMBER ||--o{ MEDICATION : "has medications"
+    CORE_MEMBER ||--o{ VITAL_SIGN : "has vitals"
+    CORE_MEMBER ||--o{ LAB_RESULT : "has lab results"
+    CORE_MEMBER ||--o{ PROCEDURE_RECORD : "has procedures"
+    CORE_MEMBER ||--o{ IMMUNIZATION : "has immunizations"
+    CORE_MEMBER ||--o{ CLINICAL_NOTE : "has notes"
+    CORE_MEMBER ||--o{ CARE_PLAN : "has care plans"
+    CORE_MEMBER ||--o{ ENCOUNTER_RECORD : "has encounters"
+      </pre>
+    </div>
+  </div>
+
+  <!-- Cross-TLD: HEALTH_RECORD to CLAIMS -->
+  <div class="card">
+    <div class="card-header">
+      Cross-TLD: HEALTH_RECORD to CLAIMS
+      <small>Clinical records linked to claims for cost and utilization analysis</small>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+erDiagram
+    CLAIMS_MEDICAL_CLAIM ||--o| PROCEDURE_RECORD : "documented by"
+    CLAIMS_MEDICAL_CLAIM ||--o| LAB_RESULT : "documented by"
+    CLAIMS_RX_CLAIM ||--o| MEDICATION : "linked to"
+    CLINICAL_ADMISSION ||--o{ ENCOUNTER_RECORD : "creates"
+      </pre>
+    </div>
+  </div>
+
+  <!-- Cross-TLD: HEALTH_RECORD to REFERENCE -->
+  <div class="card">
+    <div class="card-header">
+      Cross-TLD: HEALTH_RECORD to REFERENCE
+      <small>Standard code systems for clinical terminology</small>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+erDiagram
+    REFERENCE_ICD10_CODE ||--o{ PROBLEM : "codes"
+    REFERENCE_CPT_CODE ||--o{ PROCEDURE_RECORD : "codes"
+    REFERENCE_NDC_CODE ||--o{ MEDICATION : "codes"
+      </pre>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Wellnecity Enterprise Data Model &bull; HEALTH_RECORD TLD v1.0 &bull; Generated 2026-01-26
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#eaf2f8',
+      primaryTextColor: '#1a5276',
+      primaryBorderColor: '#2980b9',
+      lineColor: '#2980b9',
+      secondaryColor: '#e8f8f5',
+      tertiaryColor: '#fef3e2',
+      fontSize: '14px'
+    },
+    er: {
+      diagramPadding: 20,
+      layoutDirection: 'TB',
+      minEntityWidth: 100,
+      minEntityHeight: 75,
+      entityPadding: 15,
+      useMaxWidth: true
+    }
+  });
+</script>
+
+</body>
+</html>
