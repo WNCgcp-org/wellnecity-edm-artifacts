@@ -1,0 +1,72 @@
+Entity,#,Field,Type,Constraints,Domain,Description,SDK Source Field,SDK Notes
+CASE,1,case_id,uuid,"PK, R",Identity & Origin,Unique case identifier,id / _id,ObjectId → UUID
+CASE,2,case_origin,json,R,Identity & Origin,"Origin(s) of the case — JSON array of sources (patient, moi, financial_control, referral, analytics)",source + referralSource,Merged into JSON array of origins
+CASE,3,case_subject_type,string(20),,Identity & Origin,Subject type (Patient),subjectType,
+CASE,4,case_participants_array_id,json,,Case Participants,Participant array (JSON in Mongo; exploded to CASE_PARTICIPANT in BQ),participants[],JSON in Mongo → table in BQ
+CASE,5,campaign_id,uuid,"FK, I",Campaign & Performance Lever,Reference to CAMPAIGN (conceptual — future entity),campaignId,Campaign reference
+CASE,6,campaign_name,string(255),,Campaign & Performance Lever,Denormalized campaign name,campaignName,Denormalized
+CASE,7,campaign_health_plan_id,uuid,"FK, I",Campaign & Performance Lever,Reference to ORG — the health plan that scopes this campaign,campaignHealthPlanId,Health plan ORG reference
+CASE,8,campaign_health_plan_name,string(255),,Campaign & Performance Lever,Denormalized health plan name,campaignHealthPlanName,Denormalized
+CASE,9,program_key,string(100),I,Campaign & Performance Lever,"Analytics program key (edison_model_1, nadac_reprice, etc.)",programKey,
+CASE,10,performance_lever_id,uuid,"FK, I",Campaign & Performance Lever,Reference to PERFORMANCE_LEVER (conceptual — future entity),performanceLeverId,Performance Lever reference
+CASE,11,performance_lever_name,string(255),,Campaign & Performance Lever,Denormalized performance lever name,performanceLeverName,Denormalized
+CASE,12,case_items_array_id,json,,Case Items,Case items array (JSON in Mongo; exploded to CASE_ITEM in BQ),items[],JSON in Mongo → table in BQ
+CASE,13,case_workflow_array_id,json,,Case WorkFlow,Workflow steps array (JSON in Mongo; exploded to CASE_WORKFLOW in BQ),workflow[],JSON in Mongo → table in BQ
+CASE,14,tasks,json,,Case WorkFlow,Tasks array (JSON in Mongo; exploded to TASK in BQ),linkedModules[] (tasks),JSON in Mongo → table in BQ
+CASE,15,flags,json,,Case WorkFlow,Flags array (JSON in Mongo; exploded to FLAG in BQ),linkedModules[] (flags),JSON in Mongo → table in BQ
+CASE,16,interactions,json,,Case WorkFlow,Interactions array (JSON in Mongo; exploded to INTERACTION in BQ),linkedModules[] (interactions),JSON in Mongo → table in BQ
+CASE,17,status_state,string(20),,Lifecycle & Dates,"Lifecycle category: active, resolved",status.state,Lifecycle state stays on CASE
+CASE,18,due_date,date,,Lifecycle & Dates,Case due date,dueDate,
+CASE,19,initiated_date,date,R,Lifecycle & Dates,Date case was created,initiatedDate,
+CASE,20,closed_date,date,,Lifecycle & Dates,Date case was closed,closedDate,
+CASE,21,last_activity_date,datetime,,Lifecycle & Dates,Timestamp of last activity,lastActivityDate,
+CASE,22,is_deleted,boolean,R,Case Display,Soft delete flag,,
+CASE,23,is_archived,boolean,R,Case Display,Archive flag,,
+CASE,24,is_hidden,boolean,R,Case Display,Hidden from default views,isHidden,
+CASE,25,notes,json,,Notes & Other Extensions,Notes array (JSON in both Mongo and BQ),notes,Array → JSON
+CASE,26,extension,json,,Notes & Other Extensions,FHIR extension data,extension,Array → JSON
+CASE,27,goals,json,,Case Outcomes,Goals array (JSON in Mongo; exploded to GOAL in BQ),linkedModules[] (goals),JSON in Mongo → table in BQ
+CASE,28,identified_savings_total,"decimal(14,2)",,Case Outcomes,Total identified savings,savingStats.identifiedSavingsTotal,
+CASE,29,realized_savings_total,"decimal(14,2)",,Case Outcomes,Total realized savings,savingStats.realizedSavingsTotal,
+CASE,30,last_realized_date,date,,Case Outcomes,Date of last realized savings,savingStats.lastRealizedDate,
+CASE,31,log,json,,Audit,Case audit log array (JSON in Mongo; exploded to CASE_LOG in BQ),log[],JSON in Mongo → table in BQ
+CASE,32,created_at,datetime,R,Audit,Record creation timestamp,,
+CASE,33,updated_at,datetime,R,Audit,Last update timestamp,,
+CASE,34,created_by,string(100),,Audit,Creator user ID,,
+CASE,35,updated_by,string(100),,Audit,Last updater user ID,,
+CASE_PARTICIPANT,1,case_participant_id,uuid,"PK, R",Identity,Unique row identifier,,
+CASE_PARTICIPANT,2,case_id,uuid,"FK, R, I",Identity,Reference to CASE,,
+CASE_PARTICIPANT,3,case_participant_org_id,uuid,"FK, R, I",Organization & Ownership,Reference to ORG (the participating organization),client.id,Employer participant row
+CASE_PARTICIPANT,4,case_participant_owner_person_id,uuid,"FK, I",Organization & Ownership,"Reference to PERSON (case owner/contact at that org, optional)",owner,Owner mapped to PERSON FK
+CASE_PARTICIPANT,5,case_participant_role,string(50),"R, I",Organization & Ownership,"Role in this case: originator, tpa, vendor, employer, clinical_partner, carrier, broker",,
+CASE_PARTICIPANT,6,case_participant_is_primary,boolean,R,Organization & Ownership,Whether this is the primary/originating participant,,
+CASE_PARTICIPANT,7,case_participant_case_id,string(100),I,Case Descriptors,This party's case ID / reference number,wellnecityId / caseId,Per-party case ID
+CASE_PARTICIPANT,8,case_participant_case_name,string(255),,Case Descriptors,This party's name/label for the case,name,Per-party case name
+CASE_PARTICIPANT,9,case_participant_case_description,string,,Case Descriptors,This party's description of the case,description,Per-party description
+CASE_PARTICIPANT,10,case_participant_case_type,string(50),,Case Descriptors,This party's case type classification,type.value,Per-party type
+CASE_PARTICIPANT,11,case_participant_case_type_display,string(100),,Case Descriptors,Display name for case type,type.display,Per-party type display
+CASE_PARTICIPANT,12,case_participant_case_subtype,string(50),,Case Descriptors,This party's subtype,caseSubtype,Per-party subtype
+CASE_PARTICIPANT,13,case_participant_case_subtype_list,json,,Case Descriptors,Array of subtypes,caseSubtypeList,Array → JSON
+CASE_PARTICIPANT,14,case_participant_case_status,string(30),I,Case Descriptors,This party's status for the case,status.value / vendorCaseStatus,Per-party status
+CASE_PARTICIPANT,15,case_participant_case_status_display,string(50),,Case Descriptors,Status display name,status.display,
+CASE_PARTICIPANT,16,is_deleted,boolean,R,Audit,Soft delete flag,,
+CASE_PARTICIPANT,17,created_at,datetime,R,Audit,Record creation timestamp,,
+CASE_PARTICIPANT,18,updated_at,datetime,R,Audit,Last update timestamp,,
+CASE_WORKFLOW,1,case_workflow_id,uuid,"PK, R",Identity,Unique workflow step identifier,,
+CASE_WORKFLOW,2,case_id,uuid,"FK, R, I",Identity,Reference to CASE,,
+CASE_WORKFLOW,3,case_workflow_template_id,string(100),I,Template Origin,Performance Lever Library template step ID (null if ad-hoc),,
+CASE_WORKFLOW,4,case_workflow_template_name,string(255),,Template Origin,Performance Lever Library template name,,
+CASE_WORKFLOW,5,case_workflow_case_type,string(50),I,Template Origin,Wellnecity Case Type that sourced this step,,
+CASE_WORKFLOW,6,case_workflow_is_template,boolean,R,Template Origin,Whether this step came from a template (vs. ad-hoc),,
+CASE_WORKFLOW,7,case_workflow_step_name,string(255),R,Step Definition,Step name/title,,
+CASE_WORKFLOW,8,case_workflow_step_description,string,,Step Definition,Step description / instructions,,
+CASE_WORKFLOW,9,case_workflow_step_sequence,integer,R,Step Definition,"Order in the workflow (1, 2, 3...)",,
+CASE_WORKFLOW,10,case_workflow_step_category,string(50),,Step Definition,"Category: assessment, outreach, review, authorization, referral, closure",,
+CASE_WORKFLOW,11,case_workflow_step_status,string(30),"R, I",Step Definition,"Status: pending, in_progress, completed, skipped, blocked",,
+CASE_WORKFLOW,12,case_workflow_step_status_display,string(50),,Step Definition,Status display name,,
+CASE_WORKFLOW,13,case_workflow_due_date,date,,Step Definition,When this step is due,,
+CASE_WORKFLOW,14,case_workflow_completed_date,date,,Step Definition,When this step was completed,,
+CASE_WORKFLOW,15,case_workflow_assigned_person_id,uuid,"FK, I",Step Definition,Reference to PERSON assigned to this step,,
+CASE_WORKFLOW,16,is_deleted,boolean,R,Audit,Soft delete flag,,
+CASE_WORKFLOW,17,created_at,datetime,R,Audit,Record creation timestamp,,
+CASE_WORKFLOW,18,updated_at,datetime,R,Audit,Last update timestamp,,
